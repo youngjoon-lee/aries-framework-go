@@ -61,4 +61,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
+replace github.com/kilic/bls12-381 => github.com/youngjoon-lee/bls12-381 v0.0.0-20230323045754-2250fc264615
+
 go 1.17
