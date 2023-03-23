@@ -18,12 +18,6 @@ import (
 	bls12381 "github.com/kilic/bls12-381"
 )
 
-// nolint:gochecknoglobals
-var (
-	g1 = bls12381.NewG1()
-	g2 = bls12381.NewG2()
-)
-
 // BBSG2Pub defines BBS+ signature scheme where public key is a point in the field of G2.
 // BBS+ signature scheme (as defined in https://eprint.iacr.org/2016/663.pdf, section 4.3).
 type BBSG2Pub struct{}
@@ -213,6 +207,7 @@ func (bbs *BBSG2Pub) SignWithKey(messages [][]byte, privKey *PrivateKey) ([]byte
 	exp.Add(exp, e)
 	exp.Inverse(exp)
 
+	g1 := bls12381.NewG1()
 	sig := g1.New()
 	b := computeB(s, messagesFr, pubKeyWithGenerators)
 
@@ -232,7 +227,7 @@ func computeB(s *bls12381.Fr, messages []*SignatureMessage, key *PublicKeyWithGe
 
 	cb := newCommitmentBuilder(len(messages) + basesOffset)
 
-	cb.add(g1.One(), bls12381.NewFr().One())
+	cb.add(bls12381.NewG1().One(), bls12381.NewFr().One())
 	cb.add(key.h0, s)
 
 	for i := 0; i < len(messages); i++ {
@@ -264,6 +259,7 @@ func (cb *commitmentBuilder) build() *bls12381.PointG1 {
 }
 
 func sumOfG1Products(bases []*bls12381.PointG1, scalars []*bls12381.Fr) *bls12381.PointG1 {
+	g1 := bls12381.NewG1()
 	res := g1.Zero()
 
 	for i := 0; i < len(bases); i++ {

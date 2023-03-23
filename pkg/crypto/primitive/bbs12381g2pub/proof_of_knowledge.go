@@ -35,6 +35,8 @@ func NewPoKOfSignature(signature *Signature, messages []*SignatureMessage, revea
 		return nil, fmt.Errorf("verify input signature: %w", err)
 	}
 
+	g1 := bls12381.NewG1()
+
 	r1, r2 := createRandSignatureFr(), createRandSignatureFr()
 	b := computeB(signature.S, messages, pubKey)
 	aPrime := g1.New()
@@ -149,7 +151,7 @@ func newVC2Signature(d *bls12381.PointG1, r3 *bls12381.Fr, pubKey *PublicKeyWith
 
 // ToBytes converts PoKOfSignature to bytes.
 func (pos *PoKOfSignature) ToBytes() []byte {
-	challengeBytes := g1.ToUncompressed(pos.aBar)
+	challengeBytes := bls12381.NewG1().ToUncompressed(pos.aBar)
 	challengeBytes = append(challengeBytes, pos.pokVC1.ToBytes()...)
 	challengeBytes = append(challengeBytes, pos.pokVC2.ToBytes()...)
 
@@ -177,6 +179,8 @@ type ProverCommittedG1 struct {
 // ToBytes converts ProverCommittedG1 to bytes.
 func (g *ProverCommittedG1) ToBytes() []byte {
 	bytes := make([]byte, 0)
+
+	g1 := bls12381.NewG1()
 
 	for _, base := range g.bases {
 		bytes = append(bytes, g1.ToUncompressed(base)...)

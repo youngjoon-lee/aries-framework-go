@@ -26,7 +26,7 @@ func ParseSignature(sigBytes []byte) (*Signature, error) {
 		return nil, errors.New("invalid size of signature")
 	}
 
-	pointG1, err := g1.FromCompressed(sigBytes[:g1CompressedSize])
+	pointG1, err := bls12381.NewG1().FromCompressed(sigBytes[:g1CompressedSize])
 	if err != nil {
 		return nil, fmt.Errorf("deserialize G1 compressed signature: %w", err)
 	}
@@ -45,7 +45,7 @@ func ParseSignature(sigBytes []byte) (*Signature, error) {
 func (s *Signature) ToBytes() ([]byte, error) {
 	bytes := make([]byte, bls12381SignatureLen)
 
-	copy(bytes, g1.ToCompressed(s.A))
+	copy(bytes, bls12381.NewG1().ToCompressed(s.A))
 	copy(bytes[g1CompressedSize:g1CompressedSize+frCompressedSize], s.E.ToBytes())
 	copy(bytes[g1CompressedSize+frCompressedSize:], s.S.ToBytes())
 
@@ -56,12 +56,14 @@ func (s *Signature) ToBytes() ([]byte, error) {
 func (s *Signature) Verify(messages []*SignatureMessage, pubKey *PublicKeyWithGenerators) error {
 	p1 := s.A
 
+	g2 := bls12381.NewG2()
+
 	q1 := g2.One()
 	g2.MulScalar(q1, q1, frToRepr(s.E))
 	g2.Add(q1, q1, pubKey.w)
 
 	p2 := computeB(s.S, messages, pubKey)
-	g1.Neg(p2, p2)
+	bls12381.NewG1().Neg(p2, p2)
 
 	if compareTwoPairings(p1, q1, p2, g2.One()) {
 		return nil

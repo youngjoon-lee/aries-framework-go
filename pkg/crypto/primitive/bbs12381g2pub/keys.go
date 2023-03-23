@@ -84,7 +84,7 @@ func (pk *PublicKey) ToPublicKeyWithGenerators(messagesCount int) (*PublicKeyWit
 }
 
 func calcData(key *PublicKey, messagesCount int) []byte {
-	data := g2.ToUncompressed(key.PointG2)
+	data := bls12381.NewG2().ToUncompressed(key.PointG2)
 
 	data = append(data, 0, 0, 0, 0, 0, 0)
 
@@ -111,7 +111,7 @@ func hashToG1(data []byte) (*bls12381.PointG1, error) {
 		return nil, err
 	}
 
-	return g1.FromBytes(g.ToBytes(p))
+	return bls12381.NewG1().FromBytes(g.ToBytes(p))
 }
 
 // UnmarshalPrivateKey unmarshals PrivateKey.
@@ -135,6 +135,7 @@ func (k *PrivateKey) Marshal() ([]byte, error) {
 
 // PublicKey returns a Public Key as G2 point generated from the Private Key.
 func (k *PrivateKey) PublicKey() *PublicKey {
+	g2 := bls12381.NewG2()
 	pointG2 := g2.One()
 	g2.MulScalar(pointG2, pointG2, frToRepr(k.FR))
 
@@ -147,7 +148,7 @@ func UnmarshalPublicKey(pubKeyBytes []byte) (*PublicKey, error) {
 		return nil, errors.New("invalid size of public key")
 	}
 
-	pointG2, err := g2.FromCompressed(pubKeyBytes)
+	pointG2, err := bls12381.NewG2().FromCompressed(pubKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("deserialize public key: %w", err)
 	}
@@ -159,7 +160,7 @@ func UnmarshalPublicKey(pubKeyBytes []byte) (*PublicKey, error) {
 
 // Marshal marshals PublicKey.
 func (pk *PublicKey) Marshal() ([]byte, error) {
-	pkBytes := g2.ToCompressed(pk.PointG2)
+	pkBytes := bls12381.NewG2().ToCompressed(pk.PointG2)
 
 	return pkBytes, nil
 }
